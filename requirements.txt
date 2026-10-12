@@ -1,0 +1,10 @@
+# Local tooling (CDK app, pipeline/monitor scripts, tests).
+# The agent's own deps live in its AgentCore project (see scripts/bootstrap_agent.sh).
+aws-cdk-lib>=2.200.0
+constructs>=10.0.0
+boto3>=1.40.0
+sagemaker>=2.230,<3        # Pipelines/ModelMonitor API used here is the v2 SDK
+pandas>=2.0
+numpy>=1.26
+scikit-learn>=1.3
+pytest>=8.0
