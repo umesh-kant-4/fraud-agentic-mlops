@@ -83,12 +83,26 @@ class TestDeployer(unittest.TestCase):
     @mock.patch.dict(os.environ, {"MODEL_PACKAGE_GROUP": "g", "ENDPOINT_NAME": "ep"})
     def test_busy_endpoint_raises_for_retry(self):
         sm = mock.MagicMock()
+        sm.describe_model_package.return_value = {"ModelApprovalStatus": "Approved",
+                                                  "ModelPackageGroupName": "g"}
         sm.describe_endpoint.return_value = {"EndpointStatus": "Updating"}
         with mock.patch.object(deployer, "sm", sm):
             with self.assertRaises(deployer.EndpointBusy):
                 deployer.lambda_handler({"detail": {"ModelApprovalStatus": "Approved",
                                                     "ModelPackageGroupName": "g",
                                                     "ModelPackageArn": "arn/1"}}, None)
+        sm.create_model.assert_not_called()
+
+    @mock.patch.dict(os.environ, {"MODEL_PACKAGE_GROUP": "g", "ENDPOINT_NAME": "ep"})
+    def test_forged_approval_event_is_refused(self):
+        sm = mock.MagicMock()
+        sm.describe_model_package.return_value = {"ModelApprovalStatus": "PendingManualApproval",
+                                                  "ModelPackageGroupName": "g"}
+        with mock.patch.object(deployer, "sm", sm):
+            out = deployer.lambda_handler({"detail": {"ModelApprovalStatus": "Approved",
+                                                      "ModelPackageGroupName": "g",
+                                                      "ModelPackageArn": "arn/1"}}, None)
+        self.assertIn("not approved", out["skipped"])
         sm.create_model.assert_not_called()
 
     def test_ignores_non_approvals(self):

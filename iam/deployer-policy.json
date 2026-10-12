@@ -1,0 +1,38 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DeployThroughTheDedicatedCdkBootstrap",
+      "Effect": "Allow",
+      "Action": "sts:AssumeRole",
+      "Resource": [
+        "arn:aws:iam::${ACCOUNT_ID}:role/cdk-fraudmlops-deploy-role-${ACCOUNT_ID}-${REGION}",
+        "arn:aws:iam::${ACCOUNT_ID}:role/cdk-fraudmlops-file-publishing-role-${ACCOUNT_ID}-${REGION}"
+      ]
+    },
+    {
+      "Sid": "CdkBootstrapVersion",
+      "Effect": "Allow",
+      "Action": ["ssm:GetParameter", "ssm:GetParameters"],
+      "Resource": "arn:aws:ssm:${REGION}:${ACCOUNT_ID}:parameter/cdk-bootstrap/fraudmlops/*"
+    },
+    {
+      "Sid": "TeardownProjectStacksWithTheScopedExecutionRole",
+      "Effect": "Allow",
+      "Action": "cloudformation:DeleteStack",
+      "Resource": ["arn:aws:cloudformation:${REGION}:${ACCOUNT_ID}:stack/FraudAgentWiring/*",
+                   "arn:aws:cloudformation:${REGION}:${ACCOUNT_ID}:stack/FraudMlopsTools/*",
+                   "arn:aws:cloudformation:${REGION}:${ACCOUNT_ID}:stack/FraudMlopsCore/*",
+                   "arn:aws:cloudformation:${REGION}:${ACCOUNT_ID}:stack/*FraudOps*/*"],
+      "Condition": {"StringEquals": {"cloudformation:RoleArn":
+        "arn:aws:iam::${ACCOUNT_ID}:role/cdk-fraudmlops-cfn-exec-role-${ACCOUNT_ID}-${REGION}"}}
+    },
+    {
+      "Sid": "PassTheScopedExecutionRoleToCloudFormation",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::${ACCOUNT_ID}:role/cdk-fraudmlops-cfn-exec-role-${ACCOUNT_ID}-${REGION}",
+      "Condition": {"StringEquals": {"iam:PassedToService": "cloudformation.amazonaws.com"}}
+    }
+  ]
+}

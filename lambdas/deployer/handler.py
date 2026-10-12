@@ -80,6 +80,13 @@ def lambda_handler(event, _context):
         return {"skipped": "other group"}
 
     arn = detail["ModelPackageArn"]
+    # Never trust the event payload alone: confirm with SageMaker that a human approved it.
+    pkg = sm.describe_model_package(ModelPackageName=arn)
+    if pkg.get("ModelApprovalStatus") != "Approved" or \
+            pkg.get("ModelPackageGroupName") != os.environ["MODEL_PACKAGE_GROUP"]:
+        log.warning(json.dumps({"refused": arn, "status": pkg.get("ModelApprovalStatus")}))
+        return {"skipped": "package is not approved in this group"}
+
     endpoint = os.environ["ENDPOINT_NAME"]
     status = endpoint_status(endpoint)
     if status not in (None, "InService", "Failed"):

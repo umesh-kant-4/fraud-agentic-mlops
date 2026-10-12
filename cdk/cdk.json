@@ -1,6 +1,11 @@
 {
   "app": "python3 app.py",
+  "toolkitStackName": "CDKToolkit-FraudMlops",
   "context": {
-    "prefix": "fraud-mlops"
+    "prefix": "fraud-mlops",
+    "@aws-cdk/core:bootstrapQualifier": "fraudmlops",
+    "@aws-cdk/core:permissionsBoundary": {
+      "name": "FraudMlopsBoundary"
+    }
   }
 }

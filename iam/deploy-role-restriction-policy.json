@@ -1,0 +1,43 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "OnlyProjectStacks",
+      "Effect": "Deny",
+      "Action": [
+        "cloudformation:CreateStack",
+        "cloudformation:UpdateStack",
+        "cloudformation:DeleteStack",
+        "cloudformation:CreateChangeSet",
+        "cloudformation:ExecuteChangeSet",
+        "cloudformation:DeleteChangeSet",
+        "cloudformation:SetStackPolicy",
+        "cloudformation:ContinueUpdateRollback",
+        "cloudformation:RollbackStack",
+        "cloudformation:CancelUpdateStack"
+      ],
+      "NotResource": [
+        "arn:aws:cloudformation:${REGION}:${ACCOUNT_ID}:stack/FraudMlopsCore/*",
+        "arn:aws:cloudformation:${REGION}:${ACCOUNT_ID}:stack/FraudMlopsTools/*",
+        "arn:aws:cloudformation:${REGION}:${ACCOUNT_ID}:stack/FraudAgentWiring/*",
+        "arn:aws:cloudformation:${REGION}:${ACCOUNT_ID}:stack/*FraudOps*/*"
+      ]
+    },
+    {
+      "Sid": "OnlyWithTheScopedExecutionRole",
+      "Effect": "Deny",
+      "Action": [
+        "cloudformation:CreateStack",
+        "cloudformation:UpdateStack",
+        "cloudformation:DeleteStack",
+        "cloudformation:CreateChangeSet"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "cloudformation:RoleArn": "arn:aws:iam::${ACCOUNT_ID}:role/cdk-fraudmlops-cfn-exec-role-${ACCOUNT_ID}-${REGION}"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {"Sid": "RoleWritesThatSupportTheBoundaryCondition", "Effect": "Allow", "Action": ["iam:CreateRole", "iam:PutRolePermissionsBoundary", "iam:PutRolePolicy", "iam:DeleteRolePolicy", "iam:AttachRolePolicy", "iam:DetachRolePolicy"], "Resource": ["arn:aws:iam::${ACCOUNT_ID}:role/FraudMlopsCore-*", "arn:aws:iam::${ACCOUNT_ID}:role/FraudMlopsTools-*", "arn:aws:iam::${ACCOUNT_ID}:role/FraudAgentWiring-*", "arn:aws:iam::${ACCOUNT_ID}:role/*FraudOps*"], "Condition": {"StringEquals": {"iam:PermissionsBoundary": "arn:aws:iam::${ACCOUNT_ID}:policy/FraudMlopsBoundary"}}},
+    {"Sid": "OtherRoleLifecycleByProjectName", "Effect": "Allow", "Action": ["iam:TagRole", "iam:UntagRole", "iam:UpdateAssumeRolePolicy", "iam:UpdateRole", "iam:UpdateRoleDescription", "iam:DeleteRole"], "Resource": ["arn:aws:iam::${ACCOUNT_ID}:role/FraudMlopsCore-*", "arn:aws:iam::${ACCOUNT_ID}:role/FraudMlopsTools-*", "arn:aws:iam::${ACCOUNT_ID}:role/FraudAgentWiring-*", "arn:aws:iam::${ACCOUNT_ID}:role/*FraudOps*"]},
+    {"Sid": "ReadIam", "Effect": "Allow", "Action": ["iam:GetRole", "iam:GetRolePolicy", "iam:ListRolePolicies", "iam:ListAttachedRolePolicies", "iam:ListRoleTags", "iam:GetPolicy", "iam:ListInstanceProfilesForRole"], "Resource": "*"},
+    {"Sid": "AgentCoreServiceLinkedRole", "Effect": "Allow", "Action": "iam:CreateServiceLinkedRole", "Resource": "*", "Condition": {"StringLike": {"iam:AWSServiceName": "*bedrock-agentcore.amazonaws.com"}}},
+    {"Sid": "PassOnlyProjectRolesToProjectServices", "Effect": "Allow", "Action": "iam:PassRole", "Resource": ["arn:aws:iam::${ACCOUNT_ID}:role/FraudMlopsCore-*", "arn:aws:iam::${ACCOUNT_ID}:role/FraudMlopsTools-*", "arn:aws:iam::${ACCOUNT_ID}:role/FraudAgentWiring-*", "arn:aws:iam::${ACCOUNT_ID}:role/*FraudOps*"], "Condition": {"StringEquals": {"iam:PassedToService": ["lambda.amazonaws.com", "sagemaker.amazonaws.com", "bedrock-agentcore.amazonaws.com"]}}},
+    {"Sid": "DenyIamEscalationPaths", "Effect": "Deny", "Action": ["iam:DeleteRolePermissionsBoundary", "iam:CreateUser", "iam:CreateAccessKey", "iam:CreateLoginProfile", "iam:CreatePolicy", "iam:CreatePolicyVersion", "iam:SetDefaultPolicyVersion", "iam:DeletePolicy", "iam:DeletePolicyVersion", "iam:AttachUserPolicy", "iam:PutUserPolicy", "iam:AttachGroupPolicy", "iam:PutGroupPolicy"], "Resource": "*"}
+  ]
+}

@@ -22,9 +22,29 @@ cp "$HERE/agents/fraud_ops_agent/main.py" "$HERE/agents/fraud_ops_agent/roles.py
 # Extra deps on top of the template's (bedrock-agentcore, strands-agents, mcp)
 ( cd "$APP" && uv add boto3 mcp-proxy-for-aws )
 
+# Every IAM role the AgentCore CDK app creates must carry the project permissions
+# boundary (the scoped CloudFormation execution policy refuses roles without it).
+python3 - "$PROJECT_DIR/agentcore/cdk/cdk.json" <<'EOF'
+import json, sys, pathlib
+p = pathlib.Path(sys.argv[1])
+if not p.exists():
+    sys.exit(f"{p} not found: the AgentCore CLI layout changed. Add the context key "
+             '"@aws-cdk/core:permissionsBoundary": {"name": "FraudMlopsBoundary"} '
+             "to the CDK app's cdk.json by hand, then re-run.")
+cfg = json.loads(p.read_text())
+ctx = cfg.setdefault("context", {})
+ctx["@aws-cdk/core:permissionsBoundary"] = {"name": "FraudMlopsBoundary"}
+ctx["@aws-cdk/core:bootstrapQualifier"] = "fraudmlops"   # deploy via the scoped bootstrap
+cfg["toolkitStackName"] = "CDKToolkit-FraudMlops"
+p.write_text(json.dumps(cfg, indent=2) + "\n")
+print(f"permissions boundary + bootstrap qualifier set in {p}")
+EOF
+
 cd "$PROJECT_DIR"
 agentcore validate
-agentcore deploy --yes
+# No --yes: if the CLI offers to bootstrap CDK, decline. This project deploys through the
+# dedicated 'fraudmlops' bootstrap created by iam/setup.sh.
+agentcore deploy
 
 echo
 echo "Deployed. Now grab the runtime ARN and its execution role name:"

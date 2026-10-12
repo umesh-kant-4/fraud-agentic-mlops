@@ -1,0 +1,11 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {"Sid": "DenyAssumingAnyOtherRole", "Effect": "Deny", "Action": ["sts:AssumeRole", "sts:TagSession", "sts:SetSourceIdentity"], "NotResource": ["arn:aws:iam::${ACCOUNT_ID}:role/cdk-fraudmlops-deploy-role-${ACCOUNT_ID}-${REGION}", "arn:aws:iam::${ACCOUNT_ID}:role/cdk-fraudmlops-file-publishing-role-${ACCOUNT_ID}-${REGION}"]},
+    {"Sid": "DenyModelApprovalHumansOnly", "Effect": "Deny", "Action": ["sagemaker:UpdateModelPackage", "sagemaker:CreateModelPackage", "sagemaker:DeleteModelPackage", "sagemaker:DeleteModelPackageGroup", "sagemaker:CreateNotebookInstance", "sagemaker:CreatePresignedNotebookInstanceUrl", "sagemaker:CreatePresignedDomainUrl", "sagemaker:CreateDomain", "sagemaker:CreateUserProfile"], "Resource": "*"},
+    {"Sid": "DenyDirectIamAndCredentialChanges", "Effect": "Deny", "Action": ["iam:Create*", "iam:Delete*", "iam:Put*", "iam:Attach*", "iam:Detach*", "iam:Update*", "iam:Add*", "iam:Remove*", "iam:SetDefaultPolicyVersion", "iam:Tag*", "iam:Untag*", "iam:Upload*", "bedrock-agentcore:GetResourceApiKey", "bedrock-agentcore:GetResourceOauth2Token", "bedrock-agentcore:GetWorkloadAccessToken*"], "Resource": "*"},
+    {"Sid": "DenyDestroyingRetainedData", "Effect": "Deny", "Action": ["s3:DeleteBucket", "s3:PutBucketPolicy", "s3:DeleteBucketPolicy", "s3:PutBucketPublicAccessBlock", "s3:PutBucketVersioning", "dynamodb:DeleteTable", "dynamodb:UpdateContinuousBackups"], "Resource": "*"},
+    {"Sid": "DenyTouchingOtherStacksAndBootstrap", "Effect": "Deny", "Action": ["cloudformation:CreateStack", "cloudformation:UpdateStack", "cloudformation:DeleteStack", "cloudformation:CreateChangeSet", "cloudformation:ExecuteChangeSet"], "NotResource": ["arn:aws:cloudformation:${REGION}:${ACCOUNT_ID}:stack/FraudMlopsCore/*", "arn:aws:cloudformation:${REGION}:${ACCOUNT_ID}:stack/FraudMlopsTools/*", "arn:aws:cloudformation:${REGION}:${ACCOUNT_ID}:stack/FraudAgentWiring/*", "arn:aws:cloudformation:${REGION}:${ACCOUNT_ID}:stack/*FraudOps*/*"]},
+    {"Sid": "DenyOtherRegions", "Effect": "Deny", "NotAction": ["iam:*", "sts:*", "ce:*", "s3:CreateBucket", "s3:ListAllMyBuckets", "s3:GetBucketLocation", "bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"], "Resource": "*", "Condition": {"StringNotEquals": {"aws:RequestedRegion": "${REGION}"}}}
+  ]
+}
